@@ -11,10 +11,12 @@ namespace VisitorsPlacement_Bal.Classes
 {
     public class GenerateVisitors
     {
-        public static void AddRandomVistors(Stadium stadium)
+        public static List<(string groupName, List<string> visitors)> AddRandomVisitors(Stadium stadium)
         {
             Random random = new();
             List<string> groupColors = new() { "Red", "Green", "Blue", "Yellow", "DarkGreen", "Magenta" };
+
+            List<(string groupName, List<string> visitors)> groupData = new();
 
             for (int i = 1; i <= 6; i++)
             {
@@ -34,8 +36,10 @@ namespace VisitorsPlacement_Bal.Classes
                 }
 
                 string groupName = "Group " + i;
-                stadium.CreateVisitorGroup(groupName, visitors);
+                groupData.Add((groupName, visitors));
             }
+
+            return groupData;
         }
     }
 }

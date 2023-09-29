@@ -31,9 +31,6 @@ namespace VisitorsPlacement
         public static partial bool FreeConsole();
     }
 
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private readonly Stadium stadium = new();
@@ -46,13 +43,21 @@ namespace VisitorsPlacement
 
             CreateSections();
 
-            GenerateVisitors.AddRandomVistors(stadium);
+            List<(string groupName, List<string> visitors)> groupData = GenerateVisitors.AddRandomVisitors(stadium);
+            AddVisitorsToGroup(groupData);
 
             stadium.AssignVisitors();
 
             DisplayVisitorGroups();
-
             DisplayVisitorsOnTheSeats();
+        }
+
+        private void AddVisitorsToGroup(List<(string groupName, List<string> visitors)> groupData)
+        {
+            foreach (var (groupName, visitors) in groupData)
+            {
+                stadium.CreateVisitorGroup(groupName, visitors);
+            }
         }
 
         private void CreateSections()
@@ -200,7 +205,6 @@ namespace VisitorsPlacement
                 Console.WriteLine();
             }
         }
-
 
         private static string IsAdult(Visitor member)
         {
