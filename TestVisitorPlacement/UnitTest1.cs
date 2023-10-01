@@ -10,12 +10,6 @@ namespace TestVisitorPlacement
         }
 
         [Test]
-        public void Test1()
-        {
-            Assert.Pass();
-        }
-
-        [Test]
         public void Scenario1()
         {
             // Arrange
@@ -51,11 +45,13 @@ namespace TestVisitorPlacement
             stadium.CreateVisitorGroup("Group 3", new List<string> { "Abd", "Jelle", "Thomas" });
             stadium.CreateVisitorGroup("Group 4", new List<string> { "Viggo", "Quin" });
 
+            stadium.AssignVisitors();
+
             // Act
             int sectionCount = stadium.GetSectionCount();
 
             // Assert
-            Assert.That(sectionCount, Is.EqualTo(3));
+            Assert.That(sectionCount, Is.EqualTo(2));
         }
     }
 }

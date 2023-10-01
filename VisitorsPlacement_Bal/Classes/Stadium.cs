@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VisitorsPlacement_Bal.Enums;
-using static System.Collections.Specialized.BitVector32;
+/*using static System.Collections.Specialized.BitVector32;*/
 
 namespace VisitorsPlacement_Bal.Classes
 {
@@ -59,6 +59,8 @@ namespace VisitorsPlacement_Bal.Classes
 
                 AssignGroupToSection(group, children, adults);
             }
+
+            RemoveSectionsWithNoVisitors();
         }
 
         private void AssignGroupToSection(VisitorGroup group, List<Visitor> children, List<Visitor> adults)
@@ -194,6 +196,36 @@ namespace VisitorsPlacement_Bal.Classes
         public int GetSectionCount()
         {
             return sections.Count;
+        }
+
+        public List<EventSection> GetSectionsFromStadium()
+        {
+            return sections;
+        }
+
+        public List<VisitorGroup> GetVisitorGroupsFromStadium()
+        {
+            return visitorGroups;
+        }
+
+        private void RemoveSectionsWithNoVisitors()
+        {
+            List<EventSection> sectionsToRemove = new();
+
+            foreach (EventSection section in sections)
+            {
+                bool hasVisitor = section.Rows.Any(row => row.Seats.Any(seat => seat.AssignedVisitor != null));
+
+                if (!hasVisitor)
+                {
+                    sectionsToRemove.Add(section);
+                }
+            }
+
+            foreach (EventSection sectionToRemove in sectionsToRemove)
+            {
+                sections.Remove(sectionToRemove);
+            }
         }
     }
 }
