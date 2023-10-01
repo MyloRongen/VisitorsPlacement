@@ -11,8 +11,9 @@ namespace VisitorsPlacement_Bal.Classes
     public class Stadium
     {
         private readonly List<Visitor> visitors;
-        public List<VisitorGroup> visitorGroups;
-        public List<EventSection> sections;
+        private readonly List<VisitorGroup> visitorGroups;
+        private readonly List<EventSection> sections;
+        private GroupAssignmentCounts groupAssignmentCounts = new();
 
         public Stadium()
         {
@@ -66,19 +67,19 @@ namespace VisitorsPlacement_Bal.Classes
 
             foreach (EventSection section in sections)
             {
-                if (GroupFitsInTheSection(group, section) && TryAssignGroupToSection(section, children, adults, ref groupAssigned))
+                if (GroupFitsInTheSection(group, section) && TryAssignGroupToSection(section, children, adults, groupAssigned))
                 {
+                    groupAssigned = true;
                     break;
                 }
             }
         }
 
-        private static bool TryAssignGroupToSection(EventSection section, List<Visitor> children, List<Visitor> adults, ref bool groupAssigned)
+        private bool TryAssignGroupToSection(EventSection section, List<Visitor> children, List<Visitor> adults, bool groupAssigned)
         {
             if (section.CanAssignGroupWithChildren(children) || EventSection.CanAssignGroupWithOnlyAdults(children, groupAssigned))
             {
                 AssignGroupToSeats(children, adults, section);
-                groupAssigned = true;
                 return true;
             }
 
@@ -97,37 +98,36 @@ namespace VisitorsPlacement_Bal.Classes
             return false;
         }
 
-        private static void AssignGroupToSeats(List<Visitor> children, List<Visitor> adults, EventSection section)
+        private void AssignGroupToSeats(List<Visitor> children, List<Visitor> adults, EventSection section)
         {
-            int childIndex = 0;
-            int adultIndex = 0;
+            groupAssignmentCounts = new GroupAssignmentCounts();
 
             foreach (Row row in section.Rows)
             {
                 List<Seat>? seatsAvailable = row.GetAvailableSeats();
-                ProcessRowForSpace(seatsAvailable, children, adults, ref childIndex, ref adultIndex, section.Rows.Count);
+                ProcessRowForSpace(seatsAvailable, children, adults, section.Rows.Count);
                 
-                if (IsGroupPlaced(childIndex, adultIndex, children, adults))
+                if (IsGroupPlaced(children, adults))
                 {
                     return;
                 }
             }
         }
 
-        private static void ProcessRowForSpace(List<Seat>? seatsAvailable, List<Visitor> children, List<Visitor> adults, ref int childIndex, ref int adultIndex, int numRows)
+        private void ProcessRowForSpace(List<Seat>? seatsAvailable, List<Visitor> children, List<Visitor> adults, int numRows)
         {
             for (int i = 0; i < seatsAvailable?.Count; i++)
             {
                 Seat seat = seatsAvailable[i];
 
-                if (ChildInGroup(seat, children, ref childIndex))
+                if (ChildInGroup(seat, children))
                 {         
-                    AssignChildToSeat(seat, children, ref childIndex);
-                    AssignOneAdultIfPossible(children, adults, ref childIndex, ref adultIndex, numRows, seatsAvailable, i);
+                    AssignChildToSeat(seat, children);
+                    AssignOneAdultIfPossible(children, adults, numRows, seatsAvailable, i);
                 }
-                else if (OnlyAdultsInGroup(seat, adults, ref adultIndex))
+                else if (OnlyAdultsInGroup(seat, adults))
                 {
-                    AssignAdultToSeat(seat, adults, ref adultIndex);
+                    AssignAdultToSeat(seat, adults);
                 }
                 else
                 {
@@ -136,32 +136,22 @@ namespace VisitorsPlacement_Bal.Classes
             }
         }
 
-        private static void AssignOneAdultIfPossible(List<Visitor> children, List<Visitor> adults, ref int childIndex, ref int adultIndex, int numRows, List<Seat>? seatsAvailable, int currentIndex)
+        private void AssignOneAdultIfPossible(List<Visitor> children, List<Visitor> adults, int numRows, List<Seat>? seatsAvailable, int currentIndex)
         {
-            if (childIndex == children.Count && adultIndex < adults.Count && numRows > 1)
+            if (groupAssignmentCounts.ChildIndex == children.Count && groupAssignmentCounts.AdultIndex < adults.Count && numRows > 1)
             {
-                AssignAdultToNextRowIfAvailable(adults, ref adultIndex, seatsAvailable, currentIndex);
+                AssignAdultToNextRowIfAvailable(adults, seatsAvailable, currentIndex);
             }
         }
 
-        private static bool IsGroupPlaced(int childIndex, int adultIndex, List<Visitor> children, List<Visitor> adults)
+        private bool IsGroupPlaced(List<Visitor> children, List<Visitor> adults)
         {
-            return childIndex >= children.Count && adultIndex >= adults.Count;
+            return groupAssignmentCounts.ChildIndex >= children.Count && groupAssignmentCounts.AdultIndex >= adults.Count;
         }
 
-        private static bool ChildInGroup(Seat seat, List<Visitor> children, ref int childIndex)
+        private bool ChildInGroup(Seat seat, List<Visitor> children)
         {
-            if (childIndex < children.Count && seat.Availability == SeatStatus.Available)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool OnlyAdultsInGroup(Seat seat, List<Visitor> adults, ref int adultIndex)
-        {
-            if (adultIndex < adults.Count && seat.Availability == SeatStatus.Available)
+            if (groupAssignmentCounts.ChildIndex < children.Count && seat.Availability == SeatStatus.Available)
             {
                 return true;
             }
@@ -169,26 +159,41 @@ namespace VisitorsPlacement_Bal.Classes
             return false;
         }
 
-        private static void AssignChildToSeat(Seat seat, List<Visitor> children, ref int childIndex)
+        private bool OnlyAdultsInGroup(Seat seat, List<Visitor> adults)
         {
-            seat.AssignVisitor(children[childIndex]);
-            childIndex++;
+            if (groupAssignmentCounts.AdultIndex < adults.Count && seat.Availability == SeatStatus.Available)
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        private static void AssignAdultToSeat(Seat seat, List<Visitor> adults, ref int adultIndex)
+        private void AssignChildToSeat(Seat seat, List<Visitor> children)
         {
-            seat.AssignVisitor(adults[adultIndex]);
-            adultIndex++;
+            seat.AssignVisitor(children[groupAssignmentCounts.ChildIndex]);
+            groupAssignmentCounts.ChildIndex++;
         }
 
-        private static void AssignAdultToNextRowIfAvailable(List<Visitor> adults, ref int adultIndex, List<Seat>? seatsAvailable, int currentIndex)
+        private void AssignAdultToSeat(Seat seat, List<Visitor> adults)
         {
-            if (adultIndex < adults.Count && currentIndex < seatsAvailable?.Count - 1)
+            seat.AssignVisitor(adults[groupAssignmentCounts.AdultIndex]);
+            groupAssignmentCounts.AdultIndex++;
+        }
+
+        private void AssignAdultToNextRowIfAvailable(List<Visitor> adults, List<Seat>? seatsAvailable, int currentIndex)
+        {
+            if (groupAssignmentCounts.AdultIndex < adults.Count && currentIndex < seatsAvailable?.Count - 1)
             {
                 Seat? adultSeat = seatsAvailable?[currentIndex + 1];
-                adultSeat?.AssignVisitor(adults[adultIndex]);
-                adultIndex++;
+                adultSeat?.AssignVisitor(adults[groupAssignmentCounts.AdultIndex]);
+                groupAssignmentCounts.AdultIndex++;
             }
+        }
+
+        public int GetSectionCount()
+        {
+            return sections.Count;
         }
     }
 }
