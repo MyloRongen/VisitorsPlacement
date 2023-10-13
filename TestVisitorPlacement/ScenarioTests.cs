@@ -2,7 +2,7 @@ using VisitorsPlacement_Bal.Classes;
 
 namespace TestVisitorPlacement
 {
-    public class Tests
+    public class ScenarioTests
     {
         [SetUp]
         public void Setup()
@@ -52,6 +52,7 @@ namespace TestVisitorPlacement
 
             // Assert
             Assert.That(sectionCount, Is.EqualTo(2));
+            // test ook dat kinderen daadwerkelijk alleen maar op de eerste rij zitten
         }
     }
 }

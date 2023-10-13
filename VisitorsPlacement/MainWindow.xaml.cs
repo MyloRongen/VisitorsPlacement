@@ -44,6 +44,7 @@ namespace VisitorsPlacement
             CreateSections();
 
             List<(string groupName, List<string> visitors)> groupData = GenerateVisitors.AddRandomVisitors(stadium);
+            //Dictionary<string, List<string>> visitorsPerGroup;
             AddVisitorsToGroup(groupData);
 
             stadium.AssignVisitors();

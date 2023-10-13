@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VisitorsPlacement_Bal.Enums;
-/*using static System.Collections.Specialized.BitVector32;*/
 
 namespace VisitorsPlacement_Bal.Classes
 {
@@ -125,7 +124,7 @@ namespace VisitorsPlacement_Bal.Classes
                 if (ChildInGroup(seat, children))
                 {         
                     AssignChildToSeat(seat, children);
-                    AssignOneAdultIfPossible(children, adults, numRows, seatsAvailable, i);
+                    AssignOneAdultIfPossible(children, adults, numRows, seatsAvailable, i); 
                 }
                 else if (OnlyAdultsInGroup(seat, adults))
                 {
@@ -140,7 +139,8 @@ namespace VisitorsPlacement_Bal.Classes
 
         private void AssignOneAdultIfPossible(List<Visitor> children, List<Visitor> adults, int numRows, List<Seat>? seatsAvailable, int currentIndex)
         {
-            if (groupAssignmentCounts.ChildIndex == children.Count && groupAssignmentCounts.AdultIndex < adults.Count && numRows > 1)
+            int firstRowIndex = 1;
+            if (groupAssignmentCounts.ChildIndex == children.Count && groupAssignmentCounts.AdultIndex < adults.Count && numRows > firstRowIndex)
             {
                 AssignAdultToNextRowIfAvailable(adults, seatsAvailable, currentIndex);
             }
